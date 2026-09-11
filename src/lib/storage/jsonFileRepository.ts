@@ -40,6 +40,10 @@ export class JsonFileRepository implements IDataRepository {
 
   async deleteJob(id: string): Promise<boolean> {
     const res = await fetch(`${API_BASE}/jobs/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Failed to delete job ${id}`);
+    }
     const data = await res.json();
     return data.success;
   }
@@ -166,6 +170,10 @@ export class JsonFileRepository implements IDataRepository {
 
   async deleteDebtObligation(id: string): Promise<boolean> {
     const res = await fetch(`${API_BASE}/debts/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Failed to delete debt ${id}`);
+    }
     const data = await res.json();
     return data.success;
   }

@@ -8,6 +8,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
+// Thrown instead of deleting a job/debt that still has payment history (or,
+// for jobs, client callbacks) attached. Deletion is blocked, not cascaded -
+// financial records are never silently destroyed as a side effect of
+// deleting the thing they're attached to.
+export class DeleteBlockedError extends Error {
+  constructor(message, details) {
+    super(message);
+    this.name = 'DeleteBlockedError';
+    this.code = 'HAS_DEPENDENTS';
+    this.details = details;
+  }
+}
+
 // 1. Neon Postgres Connection URL
 const pgUrl =
   process.env.DATABASE_URL ||
@@ -152,6 +165,40 @@ export async function initDb() {
       `;
 
       console.log('✅ Neon PostgreSQL tables initialized successfully.');
+
+      // Foreign keys as a backstop behind the app-level blocked-delete checks
+      // below. ON DELETE RESTRICT (the default) matches that app-level
+      // behavior: deleting a job/debt with payment history attached fails
+      // rather than cascading, so financial records are never destroyed as
+      // a side effect. Each is added independently and idempotently - if one
+      // fails (e.g. pre-existing orphaned rows in production data), it's
+      // logged and the others are still attempted; the app keeps working
+      // either way since the app-level checks are the primary enforcement.
+      const foreignKeys = [
+        {
+          name: 'fk_job_payments_job_id',
+          run: () => sql`ALTER TABLE job_payments ADD CONSTRAINT fk_job_payments_job_id FOREIGN KEY (job_id) REFERENCES jobs(id);`
+        },
+        {
+          name: 'fk_job_interventions_job_id',
+          run: () => sql`ALTER TABLE job_interventions ADD CONSTRAINT fk_job_interventions_job_id FOREIGN KEY (job_id) REFERENCES jobs(id);`
+        },
+        {
+          name: 'fk_debt_payments_debt_id',
+          run: () => sql`ALTER TABLE debt_payments ADD CONSTRAINT fk_debt_payments_debt_id FOREIGN KEY (debt_id) REFERENCES debts(id);`
+        }
+      ];
+      for (const fk of foreignKeys) {
+        try {
+          const [{ exists }] = await sql`SELECT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = ${fk.name}) AS exists;`;
+          if (!exists) {
+            await fk.run();
+            console.log(`✅ Added foreign key ${fk.name}.`);
+          }
+        } catch (fkErr) {
+          console.error(`Could not add foreign key ${fk.name} (app-level checks still enforce this):`, fkErr.message);
+        }
+      }
     } catch (err) {
       console.error('Error initializing Neon DB tables:', err);
     }
@@ -291,20 +338,66 @@ export async function saveJobDb(job) {
   return job;
 }
 
+// Builds the "why" message shown when a job/debt delete is blocked because
+// payment history (or, for jobs, unresolved client callbacks) is attached.
+function buildJobBlockMessage(title, paymentCount, paymentTotal, interventionCount) {
+  const parts = [];
+  if (paymentCount > 0) parts.push(`${paymentCount} payment${paymentCount === 1 ? '' : 's'} totaling ${paymentTotal} MAD`);
+  if (interventionCount > 0) parts.push(`${interventionCount} client callback${interventionCount === 1 ? '' : 's'}`);
+  return `Cannot delete "${title}": it has ${parts.join(' and ')} recorded. Remove those first if you really need to delete this job.`;
+}
+
+function buildDebtBlockMessage(creditor, paymentCount, paymentTotal) {
+  return `Cannot delete debt "${creditor}": it has ${paymentCount} payment${paymentCount === 1 ? '' : 's'} totaling ${paymentTotal} MAD recorded. Remove those first if you really need to delete this debt.`;
+}
+
 export async function deleteJobDb(id) {
   if (sql) {
+    const [job] = await sql`SELECT title FROM jobs WHERE id = ${id};`;
+    const [{ count: paymentCount, total: paymentTotal }] = await sql`
+      SELECT COUNT(*)::int AS count, COALESCE(SUM(amount), 0) AS total FROM job_payments WHERE job_id = ${id};
+    `;
+    const [{ count: interventionCount }] = await sql`
+      SELECT COUNT(*)::int AS count FROM job_interventions WHERE job_id = ${id};
+    `;
+    if (paymentCount > 0 || interventionCount > 0) {
+      throw new DeleteBlockedError(
+        buildJobBlockMessage(job?.title || id, paymentCount, parseFloat(paymentTotal), interventionCount),
+        { paymentCount, paymentTotal: parseFloat(paymentTotal), interventionCount }
+      );
+    }
     await sql`DELETE FROM jobs WHERE id = ${id};`;
     return true;
   }
 
   if (redis) {
     const jobs = (await redis.get('jobs')) || [];
+    const job = jobs.find(j => j.id === id);
+    const payments = ((await redis.get('job_payments')) || []).filter(p => p.jobId === id);
+    const interventions = ((await redis.get('job_interventions')) || []).filter(i => i.jobId === id);
+    if (payments.length > 0 || interventions.length > 0) {
+      const total = payments.reduce((sum, p) => sum + p.amount, 0);
+      throw new DeleteBlockedError(
+        buildJobBlockMessage(job?.title || id, payments.length, total, interventions.length),
+        { paymentCount: payments.length, paymentTotal: total, interventionCount: interventions.length }
+      );
+    }
     const filtered = jobs.filter(j => j.id !== id);
     await redis.set('jobs', filtered);
     return true;
   }
 
   const jobs = await readJson('jobs.json');
+  const job = jobs.find(j => j.id === id);
+  const payments = (await readJson('job_payments.json')).filter(p => p.jobId === id);
+  const interventions = (await readJson('job_interventions.json')).filter(i => i.jobId === id);
+  if (payments.length > 0 || interventions.length > 0) {
+    const total = payments.reduce((sum, p) => sum + p.amount, 0);
+    throw new DeleteBlockedError(
+      buildJobBlockMessage(job?.title || id, payments.length, total, interventions.length),
+      { paymentCount: payments.length, paymentTotal: total, interventionCount: interventions.length }
+    );
+  }
   await writeJson('jobs.json', jobs.filter(j => j.id !== id));
   return true;
 }
@@ -680,18 +773,46 @@ export async function saveDebtDb(debt) {
 
 export async function deleteDebtDb(id) {
   if (sql) {
+    const [debt] = await sql`SELECT creditor FROM debts WHERE id = ${id};`;
+    const [{ count: paymentCount, total: paymentTotal }] = await sql`
+      SELECT COUNT(*)::int AS count, COALESCE(SUM(amount), 0) AS total FROM debt_payments WHERE debt_id = ${id};
+    `;
+    if (paymentCount > 0) {
+      throw new DeleteBlockedError(
+        buildDebtBlockMessage(debt?.creditor || id, paymentCount, parseFloat(paymentTotal)),
+        { paymentCount, paymentTotal: parseFloat(paymentTotal) }
+      );
+    }
     await sql`DELETE FROM debts WHERE id = ${id};`;
     return true;
   }
 
   if (redis) {
     const debts = (await redis.get('debts')) || [];
+    const debt = debts.find(d => d.id === id);
+    const payments = ((await redis.get('debt_payments')) || []).filter(p => p.debtId === id);
+    if (payments.length > 0) {
+      const total = payments.reduce((sum, p) => sum + p.amount, 0);
+      throw new DeleteBlockedError(
+        buildDebtBlockMessage(debt?.creditor || id, payments.length, total),
+        { paymentCount: payments.length, paymentTotal: total }
+      );
+    }
     const filtered = debts.filter(d => d.id !== id);
     await redis.set('debts', filtered);
     return true;
   }
 
   const debts = await readJson('debts.json');
+  const debt = debts.find(d => d.id === id);
+  const payments = (await readJson('debt_payments.json')).filter(p => p.debtId === id);
+  if (payments.length > 0) {
+    const total = payments.reduce((sum, p) => sum + p.amount, 0);
+    throw new DeleteBlockedError(
+      buildDebtBlockMessage(debt?.creditor || id, payments.length, total),
+      { paymentCount: payments.length, paymentTotal: total }
+    );
+  }
   await writeJson('debts.json', debts.filter(d => d.id !== id));
   return true;
 }

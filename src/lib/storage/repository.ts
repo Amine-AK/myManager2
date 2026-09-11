@@ -19,6 +19,7 @@ export interface IDataRepository {
   // Jobs
   getJobs(): Promise<Job[]>;
   saveJob(job: Job): Promise<Job>;
+  /** Throws if the job has payments or callbacks recorded against it; the error message explains what's blocking the delete. */
   deleteJob(id: string): Promise<boolean>;
   getJobPayments(): Promise<JobPayment[]>;
   saveJobPayment(payment: JobPayment): Promise<JobPayment>;
@@ -40,6 +41,7 @@ export interface IDataRepository {
   // Debts & Payments
   getDebtObligations(): Promise<DebtObligation[]>;
   saveDebtObligation(debt: DebtObligation): Promise<DebtObligation>;
+  /** Throws if the debt has payments recorded against it; the error message explains what's blocking the delete. */
   deleteDebtObligation(id: string): Promise<boolean>;
   getDebtPayments(): Promise<DebtPayment[]>;
   saveDebtPayment(payment: DebtPayment): Promise<DebtPayment>;

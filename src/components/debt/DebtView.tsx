@@ -73,6 +73,21 @@ export const DebtView: React.FC<DebtViewProps> = ({
     }
   };
 
+  const handleDeleteDebt = async (debt: DebtObligation) => {
+    const payments = debtPayments.filter(p => p.debtId === debt.id);
+    if (payments.length > 0) {
+      const total = payments.reduce((sum, p) => sum + p.amount, 0);
+      alert(`Cannot delete debt "${debt.creditor}": it has ${payments.length} payment${payments.length === 1 ? '' : 's'} totaling ${total} MAD recorded. Remove those first if you really need to delete this debt.`);
+      return;
+    }
+    if (!confirm(`Delete debt record for "${debt.creditor}"?`)) return;
+    try {
+      await onDeleteDebtObligation(debt.id);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : `Failed to delete debt "${debt.creditor}".`);
+    }
+  };
+
   const getDebtIcon = (t: DebtType) => {
     switch (t) {
       case 'business_supplier':
@@ -152,11 +167,7 @@ export const DebtView: React.FC<DebtViewProps> = ({
                   </div>
 
                   <button
-                    onClick={() => {
-                      if (confirm(`Delete debt record for "${debt.creditor}"?`)) {
-                        onDeleteDebtObligation(debt.id);
-                      }
-                    }}
+                    onClick={() => handleDeleteDebt(debt)}
                     className="text-slate-600 hover:text-rose-400 transition p-1"
                   >
                     <Trash2 className="w-4 h-4" />

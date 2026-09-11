@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Job, JobPaymentCollectionRequest, JobIntervention, JobStatus, JobActivityLog } from '../../types';
+import type { Job, JobPayment, JobPaymentCollectionRequest, JobIntervention, JobStatus, JobActivityLog } from '../../types';
 import { computeJobDurations, calculateJobTotalHours } from '../../lib/calculations/jobTiming';
 import { EditJobModal } from './EditJobModal';
 import {
@@ -26,6 +26,7 @@ import {
 
 interface JobsViewProps {
   jobs: Job[];
+  jobPayments: JobPayment[];
   jobInterventions: JobIntervention[];
   onSaveJob: (job: Job) => Promise<void>;
   onCollectJobPayment: (jobId: string, request: JobPaymentCollectionRequest) => Promise<void>;
@@ -36,6 +37,7 @@ interface JobsViewProps {
 
 export const JobsView: React.FC<JobsViewProps> = ({
   jobs,
+  jobPayments,
   jobInterventions,
   onSaveJob,
   onCollectJobPayment,
@@ -169,6 +171,25 @@ export const JobsView: React.FC<JobsViewProps> = ({
     });
     setResolvingInterventionId(null);
     setResolutionHours('');
+  };
+
+  const handleDeleteJob = async (job: Job) => {
+    const payments = jobPayments.filter(p => p.jobId === job.id);
+    const callbacks = jobInterventions.filter(i => i.jobId === job.id);
+    if (payments.length > 0 || callbacks.length > 0) {
+      const total = payments.reduce((sum, p) => sum + p.amount, 0);
+      const parts = [];
+      if (payments.length > 0) parts.push(`${payments.length} payment${payments.length === 1 ? '' : 's'} totaling ${total} MAD`);
+      if (callbacks.length > 0) parts.push(`${callbacks.length} client callback${callbacks.length === 1 ? '' : 's'}`);
+      alert(`Cannot delete "${job.title}": it has ${parts.join(' and ')} recorded. Remove those first if you really need to delete this job.`);
+      return;
+    }
+    if (!confirm(`Delete record for "${job.title}"?`)) return;
+    try {
+      await onDeleteJob(job.id);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : `Failed to delete "${job.title}".`);
+    }
   };
 
   return (
@@ -538,11 +559,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm(`Delete record for "${job.title}"?`)) {
-                          onDeleteJob(job.id);
-                        }
-                      }}
+                      onClick={() => handleDeleteJob(job)}
                       className="text-slate-500 hover:text-rose-400 transition"
                       title="Delete record"
                     >

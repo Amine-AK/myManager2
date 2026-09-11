@@ -3,6 +3,7 @@ import cors from 'cors';
 import {
   initDb,
   getActiveBackend,
+  DeleteBlockedError,
   getJobsDb,
   saveJobDb,
   deleteJobDb,
@@ -104,6 +105,10 @@ app.delete('/api/jobs/:id', async (req, res) => {
     await deleteJobDb(req.params.id);
     res.json({ success: true });
   } catch (err) {
+    if (err instanceof DeleteBlockedError) {
+      res.status(409).json({ error: err.message, code: err.code, details: err.details });
+      return;
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -241,6 +246,10 @@ app.delete('/api/debts/:id', async (req, res) => {
     await deleteDebtDb(req.params.id);
     res.json({ success: true });
   } catch (err) {
+    if (err instanceof DeleteBlockedError) {
+      res.status(409).json({ error: err.message, code: err.code, details: err.details });
+      return;
+    }
     res.status(500).json({ error: err.message });
   }
 });

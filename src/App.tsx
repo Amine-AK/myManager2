@@ -238,6 +238,7 @@ export function App() {
         {activeTab === 'jobs' && (
           <JobsView
             jobs={jobs}
+            jobPayments={jobPayments}
             jobInterventions={jobInterventions}
             onSaveJob={handleSaveJob}
             onCollectJobPayment={handleCollectJobPayment}
