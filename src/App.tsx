@@ -117,11 +117,6 @@ export function App() {
     await loadData();
   };
 
-  const handleSaveJobPayment = async (payment: JobPayment) => {
-    await repository.saveJobPayment(payment);
-    await loadData();
-  };
-
   const handleCollectJobPayment = async (jobId: string, request: JobPaymentCollectionRequest) => {
     await repository.collectJobPayment(jobId, request);
     await loadData();
@@ -302,7 +297,7 @@ export function App() {
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
         onSaveJob={handleSaveJob}
-        onSaveJobPayment={handleSaveJobPayment}
+        onCollectJobPayment={handleCollectJobPayment}
         clients={clients}
       />
 

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { X, Wrench, Check, User, Share2 } from 'lucide-react';
-import type { Job, JobPayment, Client } from '../../types';
+import type { Job, JobPaymentCollectionRequest, Client } from '../../types';
 import { CATEGORIES, DEFAULT_SOURCES } from '../../lib/jobOptions';
 
 interface QuickJobModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaveJob: (job: Job) => Promise<void>;
-  onSaveJobPayment: (payment: JobPayment) => Promise<void>;
+  onCollectJobPayment: (jobId: string, request: JobPaymentCollectionRequest) => Promise<void>;
   clients: Client[];
 }
 
@@ -15,7 +15,7 @@ export const QuickJobModal: React.FC<QuickJobModalProps> = ({
   isOpen,
   onClose,
   onSaveJob,
-  onSaveJobPayment,
+  onCollectJobPayment,
   clients
 }) => {
   const [title, setTitle] = useState('');
@@ -44,13 +44,10 @@ export const QuickJobModal: React.FC<QuickJobModalProps> = ({
 
     setSubmitting(true);
     try {
-      let status: Job['status'] = 'quoted';
-      if (paidNum >= priceNum) {
-        status = 'paid';
-      } else if (paidNum > 0) {
-        status = 'in_progress';
-      }
-
+      // Job is always created with paidAmount 0; if there's an initial payment,
+      // it's recorded right after through the same atomic ledger-derived path
+      // "1-Tap Collect Payment" uses, so paidAmount is never set from anywhere else.
+      const initialStatus: Job['status'] = paidNum > 0 ? 'in_progress' : 'quoted';
       const finalSource = acquisitionSource === 'Custom' ? customSource.trim() || 'Direct' : acquisitionSource;
 
       const newJob: Job = {
@@ -59,9 +56,9 @@ export const QuickJobModal: React.FC<QuickJobModalProps> = ({
         clientName: clientName.trim() || 'Client (Direct)',
         clientPhone: clientPhone.trim() || undefined,
         category,
-        status,
+        status: initialStatus,
         agreedPrice: priceNum,
-        paidAmount: paidNum,
+        paidAmount: 0,
         materialCosts: materialNum,
         startDate,
         acquisitionSource: finalSource,
@@ -71,7 +68,7 @@ export const QuickJobModal: React.FC<QuickJobModalProps> = ({
           {
             id: `log-${Date.now()}`,
             timestamp: new Date().toISOString().split('T')[0],
-            status,
+            status: initialStatus,
             note: `Job created via source: ${finalSource}`,
             hoursSpent: hoursNum > 0 ? hoursNum : undefined
           }
@@ -79,12 +76,25 @@ export const QuickJobModal: React.FC<QuickJobModalProps> = ({
       };
 
       await onSaveJob(newJob);
+
       if (paidNum > 0) {
-        await onSaveJobPayment({
-          id: `jpay-${Date.now()}`,
-          jobId: newJob.id,
-          amount: paidNum,
-          date: startDate
+        const finalStatus: Job['status'] = paidNum >= priceNum ? 'paid' : 'in_progress';
+        await onCollectJobPayment(newJob.id, {
+          payment: {
+            id: `jpay-${Date.now()}`,
+            amount: paidNum,
+            date: startDate
+          },
+          jobUpdate: {
+            status: finalStatus,
+            completedDate: finalStatus === 'paid' ? startDate : undefined,
+            logEntry: {
+              id: `log-${Date.now()}-pay`,
+              timestamp: startDate,
+              status: finalStatus,
+              note: `Payment collected: +${paidNum} MAD (Total paid: ${Math.min(paidNum, priceNum)} MAD)`
+            }
+          }
         });
       }
       setTitle('');
