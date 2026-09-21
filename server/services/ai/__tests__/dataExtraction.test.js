@@ -134,21 +134,32 @@ describe('parseAndValidateFlatResponse', () => {
 });
 
 describe('buildExtractionRequestBody', () => {
-  it('sends today\'s date and every allowed category into the system prompt', () => {
+  it('sends today\'s date and every allowed category into the Gemini systemInstruction', () => {
     const body = buildExtractionRequestBody('I spent 70 dirhams on fuel', '2026-09-21');
-    expect(body.messages[0].role).toBe('system');
-    expect(body.messages[0].content).toContain('2026-09-21');
-    expect(body.messages[0].content).toContain('Transport & Fuel (Carburant)');
-    expect(body.messages[1]).toEqual({ role: 'user', content: 'I spent 70 dirhams on fuel' });
-    expect(body.response_format.type).toBe('json_schema');
-    expect(body.response_format.json_schema.strict).toBe(true);
+    const systemText = body.systemInstruction.parts[0].text;
+    expect(systemText).toContain('2026-09-21');
+    expect(systemText).toContain('Transport & Fuel (Carburant)');
+    expect(body.contents).toEqual([{ role: 'user', parts: [{ text: 'I spent 70 dirhams on fuel' }] }]);
+    expect(body.generationConfig.responseMimeType).toBe('application/json');
   });
 
-  it('lists every schema property in required[] (OpenAI strict mode requirement)', () => {
+  it('never combines enum with nullable on the same schema property (Gemini rejects that combination)', () => {
     const body = buildExtractionRequestBody('test', '2026-09-21');
-    const schema = body.response_format.json_schema.schema;
-    expect(schema.additionalProperties).toBe(false);
-    expect(new Set(schema.required)).toEqual(new Set(Object.keys(schema.properties)));
+    const schema = body.generationConfig.responseSchema;
+    for (const [key, prop] of Object.entries(schema.properties)) {
+      if (prop.nullable) {
+        expect(prop.enum, `property "${key}" must not combine enum with nullable`).toBeUndefined();
+      }
+    }
+    // type/confidence are the only fields allowed to keep their enum, and they must stay required+non-nullable.
+    expect(schema.properties.type.enum).toBeDefined();
+    expect(schema.properties.confidence.enum).toBeDefined();
+    expect(schema.required).toEqual(expect.arrayContaining(['type', 'confidence', 'missingFields']));
+  });
+
+  it('gives missingFields an items schema (Gemini requires items on every array field)', () => {
+    const body = buildExtractionRequestBody('test', '2026-09-21');
+    expect(body.generationConfig.responseSchema.properties.missingFields).toEqual({ type: 'array', items: { type: 'string' } });
   });
 });
 

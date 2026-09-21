@@ -97,10 +97,10 @@ app.post(
   express.raw({ type: () => true, limit: MAX_AUDIO_BYTES }),
   async (req, res) => {
     try {
-      if (!process.env.OPENAI_API_KEY) {
+      if (!process.env.GEMINI_API_KEY) {
         return res.status(503).json({
           success: false,
-          error: 'Voice entry is not configured on the server yet (missing OPENAI_API_KEY). All other features still work normally.'
+          error: 'Voice entry is not configured on the server yet (missing GEMINI_API_KEY). All other features still work normally.'
         });
       }
 

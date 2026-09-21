@@ -8,9 +8,9 @@ import { flatExtractionSchema, voiceCommandSchema } from './voiceCommandSchema.j
 
 // ==========================================
 // AI SERVICE - STRUCTURED DATA EXTRACTION
-// Provider-specific code isolated to this file (OpenAI Chat Completions,
-// structured outputs / json_schema strict mode). Swapping providers later
-// only requires changing this module - callers only ever see a validated
+// Provider-specific code isolated to this file (Gemini generateContent,
+// structured JSON output via responseSchema). Swapping providers later only
+// requires changing this module - callers only ever see a validated
 // VoiceCommand, never provider-specific response shapes.
 //
 // The AI is a data-extraction engine only: it never sees the database, never
@@ -21,46 +21,45 @@ import { flatExtractionSchema, voiceCommandSchema } from './voiceCommandSchema.j
 // against locally-loaded data, not inside the AI.
 // ==========================================
 
-const OPENAI_CHAT_URL = 'https://api.openai.com/v1/chat/completions';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const EXTRACTION_TIMEOUT_MS = 20000;
-const MODEL = process.env.OPENAI_EXTRACTION_MODEL || 'gpt-4o-mini';
+// See the matching comment in speechToText.js re: this floating alias.
+const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 
 // A flat schema (see voiceCommandSchema.js for why) with every field
-// nullable. OpenAI's strict structured-outputs mode requires every property
-// to be listed in `required` and objects to set additionalProperties:false;
-// "optional" is expressed by allowing `null` as a value, not by omission.
-const FLAT_RESPONSE_JSON_SCHEMA = {
+// nullable, in Gemini's responseSchema dialect (a restricted subset of
+// OpenAPI 3.0: lowercase `type`, `nullable: true` instead of a `["x","null"]`
+// type union). Deliberately does NOT put `enum` on any nullable field -
+// Gemini's schema compiler has documented bugs where `enum` + `nullable`
+// together on one property can make EVERY request 400, especially with the
+// longer category enums here. Category/scope correctness is instead
+// enforced by the prompt text below, by Zod after the fact, and - the real
+// backstop - by buildRecords.ts's category fallback plus the confirmation
+// UI's own dropdowns, so nothing invalid ever reaches a save.
+const FLAT_RESPONSE_SCHEMA = {
   type: 'object',
-  additionalProperties: false,
   properties: {
     type: { type: 'string', enum: ['create_job', 'business_expense', 'personal_expense', 'job_payment', 'debt', 'unknown'] },
     confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
-    clientNameRaw: { type: ['string', 'null'] },
-    jobTitleRaw: { type: ['string', 'null'] },
-    jobCategory: { type: ['string', 'null'], enum: [...JOB_CATEGORIES, null] },
-    agreedPrice: { type: ['number', 'null'] },
-    paidAmountNow: { type: ['number', 'null'] },
-    materialCosts: { type: ['number', 'null'] },
-    expenseAmount: { type: ['number', 'null'] },
-    expenseTitle: { type: ['string', 'null'] },
-    expenseCategory: {
-      type: ['string', 'null'],
-      enum: [...BUSINESS_EXPENSE_CATEGORIES, ...HOUSEHOLD_EXPENSE_CATEGORIES, ...INDIVIDUAL_EXPENSE_CATEGORIES, null]
-    },
-    personalScope: { type: ['string', 'null'], enum: ['household', 'individual', null] },
-    creditorNameRaw: { type: ['string', 'null'] },
-    jobDescriptionRaw: { type: ['string', 'null'] },
-    paymentAmount: { type: ['number', 'null'] },
-    date: { type: ['string', 'null'], description: 'ISO date YYYY-MM-DD, or null if not mentioned' },
-    notes: { type: ['string', 'null'] },
+    clientNameRaw: { type: 'string', nullable: true },
+    jobTitleRaw: { type: 'string', nullable: true },
+    jobCategory: { type: 'string', nullable: true },
+    agreedPrice: { type: 'number', nullable: true },
+    paidAmountNow: { type: 'number', nullable: true },
+    materialCosts: { type: 'number', nullable: true },
+    expenseAmount: { type: 'number', nullable: true },
+    expenseTitle: { type: 'string', nullable: true },
+    expenseCategory: { type: 'string', nullable: true },
+    personalScope: { type: 'string', nullable: true },
+    creditorNameRaw: { type: 'string', nullable: true },
+    jobDescriptionRaw: { type: 'string', nullable: true },
+    paymentAmount: { type: 'number', nullable: true },
+    date: { type: 'string', nullable: true, description: 'ISO date YYYY-MM-DD, or null if not mentioned' },
+    notes: { type: 'string', nullable: true },
     missingFields: { type: 'array', items: { type: 'string' } },
-    clarificationReason: { type: ['string', 'null'] }
+    clarificationReason: { type: 'string', nullable: true }
   },
-  required: [
-    'type', 'confidence', 'clientNameRaw', 'jobTitleRaw', 'jobCategory', 'agreedPrice', 'paidAmountNow',
-    'materialCosts', 'expenseAmount', 'expenseTitle', 'expenseCategory', 'personalScope', 'creditorNameRaw',
-    'jobDescriptionRaw', 'paymentAmount', 'date', 'notes', 'missingFields', 'clarificationReason'
-  ]
+  required: ['type', 'confidence', 'missingFields']
 };
 
 /**
@@ -116,7 +115,7 @@ Examples (transcript -> type):
  * shape the frontend expects, and computes the final missingFields list
  * (required fields for that type that are still null, merged with whatever
  * the model itself flagged). Pure function - no I/O - so it is fully unit
- * testable without calling OpenAI.
+ * testable without calling the AI provider.
  */
 export function projectFlatToVoiceCommand(flat) {
   const reportedMissing = new Set(flat.missingFields || []);
@@ -201,15 +200,12 @@ export function projectFlatToVoiceCommand(flat) {
 /** Pure request-body builder, exported for testability. */
 export function buildExtractionRequestBody(transcript, todayIso) {
   return {
-    model: MODEL,
-    temperature: 0,
-    messages: [
-      { role: 'system', content: buildSystemPrompt(todayIso) },
-      { role: 'user', content: transcript }
-    ],
-    response_format: {
-      type: 'json_schema',
-      json_schema: { name: 'voice_command_extraction', strict: true, schema: FLAT_RESPONSE_JSON_SCHEMA }
+    systemInstruction: { parts: [{ text: buildSystemPrompt(todayIso) }] },
+    contents: [{ role: 'user', parts: [{ text: transcript }] }],
+    generationConfig: {
+      temperature: 0,
+      responseMimeType: 'application/json',
+      responseSchema: FLAT_RESPONSE_SCHEMA
     }
   };
 }
@@ -236,15 +232,15 @@ export function parseAndValidateFlatResponse(jsonText) {
 }
 
 /**
- * Full extraction pipeline: transcript -> OpenAI structured output -> parsed
+ * Full extraction pipeline: transcript -> Gemini structured output -> parsed
  * & validated flat shape -> narrowed VoiceCommand -> final schema check.
  * Throws on any failure; the caller (the API route) turns that into a
  * user-friendly error response.
  */
 export async function extractVoiceCommand(transcript) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not configured on the server.');
+    throw new Error('GEMINI_API_KEY is not configured on the server.');
   }
 
   const todayIso = new Date().toISOString().split('T')[0];
@@ -255,9 +251,9 @@ export async function extractVoiceCommand(transcript) {
 
   let content;
   try {
-    const response = await fetch(OPENAI_CHAT_URL, {
+    const response = await fetch(`${GEMINI_API_BASE}/models/${MODEL}:generateContent`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify(body),
       signal: controller.signal
     });
@@ -268,7 +264,8 @@ export async function extractVoiceCommand(transcript) {
     }
 
     const data = await response.json();
-    content = data.choices?.[0]?.message?.content;
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    content = parts.map(p => p.text || '').join('');
     if (!content) {
       throw new Error('AI extraction returned no content.');
     }
