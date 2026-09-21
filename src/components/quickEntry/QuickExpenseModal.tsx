@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { X, Briefcase, Home, Check, DollarSign, Coffee, Gamepad2 } from 'lucide-react';
 import type { BusinessExpense, PersonalExpense, BusinessExpenseCategory, PersonalExpenseCategory } from '../../types';
+import {
+  BUSINESS_EXPENSE_CATEGORIES as BIZ_CATEGORIES,
+  HOUSEHOLD_EXPENSE_CATEGORIES as HOUSEHOLD_CATEGORIES,
+  INDIVIDUAL_EXPENSE_CATEGORIES as INDIVIDUAL_CATEGORIES,
+  PERSONAL_EXPENSE_CATEGORIES as PERSONAL_CATEGORIES
+} from '../../lib/expenseOptions';
 
 interface QuickExpenseModalProps {
   isOpen: boolean;
@@ -8,33 +14,6 @@ interface QuickExpenseModalProps {
   onSaveBusinessExpense: (exp: BusinessExpense) => Promise<void>;
   onSavePersonalExpense: (exp: PersonalExpense) => Promise<void>;
 }
-
-const BIZ_CATEGORIES: BusinessExpenseCategory[] = [
-  'Tools & Equipment (Outillage)',
-  'Transport & Fuel (Carburant)',
-  'Materials & droguerie (Fournitures)',
-  'Licenses & Permits (Patente)',
-  'Workshop & Storage (Atelier)',
-  'Other Business Expense'
-];
-
-const HOUSEHOLD_CATEGORIES: PersonalExpenseCategory[] = [
-  'Food & Groceries (Alimentation)',
-  'Housing & Rent (Loyer)',
-  'Utilities & Phone (Eau, Électricité, Recharge)',
-  'Family & Children (Famille / Enfants)',
-  'Healthcare & Medical (Santé)',
-  'Other Household Expense'
-];
-
-const INDIVIDUAL_CATEGORIES: PersonalExpenseCategory[] = [
-  'Café & Snacks (Café / Thé / Snacks)',
-  'Gaming & Entertainment (Gaming / Loisirs)',
-  'Personal Pocket Money (Loisirs & Sorties)',
-  'Other Personal Expense'
-];
-
-const PERSONAL_CATEGORIES: PersonalExpenseCategory[] = [...HOUSEHOLD_CATEGORIES, ...INDIVIDUAL_CATEGORIES];
 
 const QUICK_AMOUNTS = [10, 20, 50, 100, 200, 500];
 
