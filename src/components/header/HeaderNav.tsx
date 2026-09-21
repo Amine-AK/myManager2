@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { SyncStatusBadge } from '../common/SyncStatusBadge';
 import { InstallAppButton } from '../common/InstallAppButton';
+import { VoiceEntryButton } from '../voice/VoiceEntryButton';
+import type { VoiceCommand } from '../../types/voice';
 
 interface HeaderNavProps {
   metrics: FinancialMetrics;
@@ -29,6 +31,8 @@ interface HeaderNavProps {
   onOpenQuickJob: () => void;
   onOpenQuickDebtPayment: () => void;
   onOpenQuickTodo?: () => void;
+  onVoiceCommandReady: (transcript: string, command: VoiceCommand) => void;
+  voiceEntryDisabled?: boolean;
   onLogout?: () => void;
 }
 
@@ -40,6 +44,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onOpenQuickJob,
   onOpenQuickDebtPayment,
   onOpenQuickTodo,
+  onVoiceCommandReady,
+  voiceEntryDisabled,
   onLogout
 }) => {
   return (
@@ -165,6 +171,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               <CreditCard className="w-3.5 h-3.5" />
               <span>Debt</span>
             </button>
+
+            <VoiceEntryButton onResult={onVoiceCommandReady} disabled={voiceEntryDisabled} />
           </div>
         </div>
 
