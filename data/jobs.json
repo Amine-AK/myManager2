@@ -1,12 +1,155 @@
 [
   {
+    "id": "job-1789723897007",
+    "title": "CCTV Installation - nadi niswi sidi l arbi",
+    "clientName": "nadi niswi sidi l arbi",
+    "category": "CCTV Installation",
+    "status": "in_progress",
+    "agreedPrice": 6450,
+    "paidAmount": 4956,
+    "materialCosts": 4900,
+    "startDate": "2026-09-18",
+    "completedDate": "2026-09-18",
+    "acquisitionSource": "Naima",
+    "daysSpent": 1,
+    "daysPaused": 0,
+    "logs": [
+      {
+        "id": "log-1789824514443",
+        "timestamp": "2026-09-19",
+        "status": "in_progress",
+        "note": "Statut changé en: in_progress"
+      },
+      {
+        "id": "log-1789824469949",
+        "timestamp": "2026-09-19",
+        "status": "revision_requested",
+        "note": "Réouverture chantier pour révision / SAV."
+      },
+      {
+        "id": "log-1789773553693",
+        "timestamp": "2026-09-18",
+        "status": "completed",
+        "note": "Job details edited."
+      },
+      {
+        "id": "log-1789728554861",
+        "timestamp": "2026-09-18",
+        "status": "completed",
+        "note": "Encaissement du solde (1056 MAD) et validation installation."
+      },
+      {
+        "id": "log-1789728546261",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "[Achat Express] +50 MAD matériel (50 MAD) -> Total matériel: 500 MAD"
+      },
+      {
+        "id": "log-1789728537373",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "[Achat Express] +150 MAD matériel (150 MAD) -> Total matériel: 450 MAD"
+      },
+      {
+        "id": "log-1789728532550",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "[Achat Express] +300 MAD matériel (300 MAD) -> Total matériel: 300 MAD"
+      },
+      {
+        "id": "log-1789724705110",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "Payment collected: +3900 MAD (Total paid: 3900 MAD)"
+      },
+      {
+        "id": "log-1789724221103",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "Statut changé en: in_progress"
+      },
+      {
+        "id": "log-1789724152394",
+        "timestamp": "2026-09-18",
+        "status": "waiting_parts",
+        "note": "Statut changé en: waiting_parts"
+      },
+      {
+        "id": "log-1789724090118",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "Statut changé en: in_progress"
+      },
+      {
+        "id": "log-1789723897007",
+        "timestamp": "2026-09-18",
+        "status": "quoted",
+        "note": "Job created via source: Naima"
+      }
+    ]
+  },
+  {
+    "id": "job-1789723730087",
+    "title": "Satellite Dish (Parabole) - monir",
+    "clientName": "monir",
+    "category": "Satellite Dish (Parabole)",
+    "status": "paid",
+    "agreedPrice": 150,
+    "paidAmount": 150,
+    "materialCosts": 60,
+    "startDate": "2026-09-18",
+    "completedDate": "2026-09-18",
+    "acquisitionSource": "Droguerie (Recommandation)",
+    "daysSpent": 1,
+    "daysPaused": 0,
+    "logs": [
+      {
+        "id": "log-1789740973244",
+        "timestamp": "2026-09-18",
+        "status": "paid",
+        "note": "s"
+      },
+      {
+        "id": "log-1789740933356",
+        "timestamp": "2026-09-18",
+        "status": "revision_requested",
+        "note": "[Achat Express] +30 MAD matériel (Droguerie/Fournitures) -> Total matériel: 60 MAD"
+      },
+      {
+        "id": "log-1789740917998",
+        "timestamp": "2026-09-18",
+        "status": "revision_requested",
+        "note": "Réouverture chantier pour révision / SAV."
+      },
+      {
+        "id": "log-1789740898731",
+        "timestamp": "2026-09-18",
+        "status": "paid",
+        "note": "Réouverture chantier pour révision / SAV."
+      },
+      {
+        "id": "log-1789723730132-pay",
+        "timestamp": "2026-09-18",
+        "status": "paid",
+        "note": "Payment collected: +150 MAD (Total paid: 150 MAD)"
+      },
+      {
+        "id": "log-1789723730087",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "Job created via source: Droguerie (Recommandation)",
+        "hoursSpent": 1.5
+      }
+    ]
+  },
+  {
     "id": "job-1787170198507",
     "title": "TV Repair - italia",
     "clientName": "italia",
     "category": "TV Repair",
-    "status": "in_progress",
+    "status": "paid",
     "agreedPrice": 100,
-    "paidAmount": 0,
+    "paidAmount": 100,
     "materialCosts": 30,
     "startDate": "2026-08-19",
     "acquisitionSource": "Friend (Recommandation)",
@@ -14,27 +157,76 @@
     "daysPaused": 0,
     "logs": [
       {
+        "id": "log-1789724666685",
+        "timestamp": "2026-09-18",
+        "status": "paid",
+        "note": "Payment collected: +100 MAD (Total paid: 100 MAD)"
+      },
+      {
+        "id": "log-1789724646378",
+        "timestamp": "2026-09-18",
+        "status": "paid",
+        "note": ";"
+      },
+      {
+        "id": "log-1789723969420",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "wsal lpiece"
+      },
+      {
         "id": "log-1787170198507",
         "timestamp": "2026-08-19",
         "status": "in_progress",
         "note": "Job created via source: Friend (Recommandation)"
       }
-    ]
+    ],
+    "completedDate": "2026-09-18"
   },
   {
     "id": "job-1787169908779",
     "title": "Camera Error / Repair - simo",
     "clientName": "simo",
     "category": "Camera Error / Repair",
-    "status": "paid",
+    "status": "quote_lost",
     "agreedPrice": 120,
     "paidAmount": 120,
-    "materialCosts": 25,
+    "materialCosts": 55,
     "startDate": "2026-08-19",
     "acquisitionSource": "Friend (Recommandation)",
     "daysSpent": 1,
     "daysPaused": 0,
     "logs": [
+      {
+        "id": "log-1789740989927",
+        "timestamp": "2026-09-18",
+        "status": "quote_lost",
+        "note": "v"
+      },
+      {
+        "id": "log-1789740881443",
+        "timestamp": "2026-09-18",
+        "status": "waiting_parts",
+        "note": "Statut changé en: waiting_parts"
+      },
+      {
+        "id": "log-1789740847886",
+        "timestamp": "2026-09-18",
+        "status": "in_progress",
+        "note": "Statut changé en: in_progress"
+      },
+      {
+        "id": "log-1789740841681",
+        "timestamp": "2026-09-18",
+        "status": "revision_requested",
+        "note": "[Achat Express] +30 MAD matériel (Droguerie/Fournitures) -> Total matériel: 55 MAD"
+      },
+      {
+        "id": "log-1789740825770",
+        "timestamp": "2026-09-18",
+        "status": "revision_requested",
+        "note": "Réouverture chantier pour révision / SAV."
+      },
       {
         "id": "log-1787169908779",
         "timestamp": "2026-08-19",

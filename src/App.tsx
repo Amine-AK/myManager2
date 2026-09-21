@@ -14,7 +14,9 @@ import type {
   DataHealthReport
 } from './types';
 import { computeFinancialMetrics, generateFactualInsights, computeDataHealthReport } from './lib/calculations';
-import { jsonFileRepository as repository } from './lib/storage/jsonFileRepository';
+import { indexedDBRepository as repository } from './lib/storage/indexeddb/IndexedDBRepository';
+import { syncEngine } from './lib/storage/sync/syncEngine';
+import { registerServiceWorker } from './lib/pwa/registerServiceWorker';
 import { HeaderNav } from './components/header/HeaderNav';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { JobsView } from './components/jobs/JobsView';
@@ -25,6 +27,34 @@ import { QuickExpenseModal } from './components/quickEntry/QuickExpenseModal';
 import { QuickJobModal } from './components/quickEntry/QuickJobModal';
 import { QuickDebtPaymentModal } from './components/quickEntry/QuickDebtPaymentModal';
 import { LoginModal } from './components/auth/LoginModal';
+import { FieldModeView } from './components/field/FieldModeView';
+import { TodoView } from './components/todos/TodoView';
+import { QuickTodoModal } from './components/todos/QuickTodoModal';
+import {
+  getStoredTodos,
+  saveTodoItem,
+  toggleTodoCompleted,
+  deleteTodoItem
+} from './lib/storage/todoRepository';
+import type { TodoItem } from './types';
+import { InventoryView } from './components/inventory/InventoryView';
+import {
+  loadInventory,
+  saveInventoryItem,
+  adjustInventoryQuantity,
+  deleteInventoryItem,
+  resetInventoryToDefault
+} from './lib/storage/inventoryRepository';
+import type { InventoryItem } from './types/inventory';
+import { KnowledgeView } from './components/knowledge/KnowledgeView';
+import {
+  loadKnowledgeBase,
+  saveGuide,
+  toggleGuideFavorite,
+  deleteGuide,
+  resetKnowledgeBaseToDefault
+} from './lib/storage/knowledgeRepository';
+import type { DiagnosticGuide } from './types/knowledgeBase';
 
 export function App() {
   // Authentication State
@@ -33,12 +63,22 @@ export function App() {
   );
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'jobs' | 'expenses' | 'debts' | 'print'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'jobs' | 'expenses' | 'debts' | 'print' | 'field' | 'todos' | 'inventory' | 'knowledge'>('dashboard');
 
   // Modal Visibility States
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
+  const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
+
+  // Todo Items State (Local-first persistence)
+  const [todos, setTodos] = useState<TodoItem[]>(getStoredTodos);
+
+  // Inventory & Consumables State (Local-first persistence)
+  const [inventory, setInventory] = useState<InventoryItem[]>(loadInventory);
+
+  // Technical Knowledge Base State (Local-first persistence)
+  const [guides, setGuides] = useState<DiagnosticGuide[]>(loadKnowledgeBase);
 
   // Entities Data State
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -78,7 +118,12 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    registerServiceWorker();
+    syncEngine.init();
     loadData();
+    return () => {
+      syncEngine.destroy();
+    };
   }, [loadData]);
 
   // SINGLE SOURCE OF TRUTH: Compute all financial metrics using /lib/calculations
@@ -215,17 +260,64 @@ export function App() {
         onOpenQuickExpense={() => setIsExpenseModalOpen(true)}
         onOpenQuickJob={() => setIsJobModalOpen(true)}
         onOpenQuickDebtPayment={() => setIsDebtModalOpen(true)}
+        onOpenQuickTodo={() => setIsTodoModalOpen(true)}
         onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 sm:pb-8">
+        {activeTab === 'todos' && (
+          <TodoView
+            todos={todos}
+            onSaveTodo={(t) => setTodos(saveTodoItem(t))}
+            onToggleComplete={(id) => setTodos(toggleTodoCompleted(id))}
+            onDeleteTodo={(id) => setTodos(deleteTodoItem(id))}
+            onOpenQuickTodo={() => setIsTodoModalOpen(true)}
+          />
+        )}
+
+        {activeTab === 'inventory' && (
+          <InventoryView
+            inventory={inventory}
+            onSaveItem={(item) => setInventory(saveInventoryItem(item))}
+            onAdjustQuantity={(id, delta) => setInventory(adjustInventoryQuantity(id, delta))}
+            onDeleteItem={(id) => setInventory(deleteInventoryItem(id))}
+            onResetToDefaults={() => setInventory(resetInventoryToDefault())}
+          />
+        )}
+
+        {activeTab === 'knowledge' && (
+          <KnowledgeView
+            guides={guides}
+            onSaveGuide={(g) => setGuides(saveGuide(g))}
+            onToggleFavorite={(id) => setGuides(toggleGuideFavorite(id))}
+            onDeleteGuide={(id) => setGuides(deleteGuide(id))}
+            onResetToDefaults={() => setGuides(resetKnowledgeBaseToDefault())}
+          />
+        )}
+
+        {activeTab === 'field' && (
+          <FieldModeView
+            jobs={jobs}
+            onUpdateJob={handleSaveJob}
+            onCollectPayment={handleCollectJobPayment}
+            onAddQuickExpense={async (exp) => {
+              await handleSaveBusinessExpense({
+                id: `bexp-${Date.now()}`,
+                ...exp
+              });
+            }}
+            onOpenQuickTodo={() => setIsTodoModalOpen(true)}
+          />
+        )}
+
         {activeTab === 'dashboard' && (
           <DashboardView
             metrics={metrics}
             insights={insights}
             jobs={jobs}
             jobPayments={jobPayments}
+            jobInterventions={jobInterventions}
             debts={debts}
             businessExpenses={businessExpenses}
             personalExpenses={personalExpenses}
@@ -307,6 +399,12 @@ export function App() {
         onClose={() => setIsDebtModalOpen(false)}
         debts={debts}
         onSaveDebtPayment={handleSaveDebtPayment}
+      />
+
+      <QuickTodoModal
+        isOpen={isTodoModalOpen}
+        onClose={() => setIsTodoModalOpen(false)}
+        onSaveTodo={(t) => setTodos(saveTodoItem(t))}
       />
     </div>
   );

@@ -18,6 +18,7 @@ import { calculateNetBusinessProfit, calculateProfitMarginPercent } from './prof
 import { calculateTotalDebtOutstanding, countActiveDebts } from './debt';
 import { calculateHouseholdSpending, calculateIndividualSpending } from './personalExpenseScope';
 import { calculateInterventionSummary } from './interventions';
+import { calculateAggregateEconomicMetrics } from './effectiveHourlyRate';
 
 export * from './cashflow';
 export * from './profitability';
@@ -29,6 +30,8 @@ export * from './jobTiming';
 export * from './personalExpenseScope';
 export * from './interventions';
 export * from './dataHealth';
+export * from './effectiveHourlyRate';
+export * from './fieldAnalytics';
 
 /**
  * SINGLE SOURCE OF TRUTH FOR ALL FINANCIAL CALCULATIONS.
@@ -77,6 +80,16 @@ export function computeFinancialMetrics(
   const { totalInterventions, unresolvedInterventionsCount, jobsWithInterventionsCount } =
     calculateInterventionSummary(jobInterventions);
 
+  const {
+    totalEconomicHours,
+    effectiveHourlyRate,
+    totalTravelCost,
+    travelTimeHours,
+    travelPercentageOfTime,
+    reworkHours,
+    reworkRatePercent
+  } = calculateAggregateEconomicMetrics(jobs, businessExpenses, jobInterventions);
+
   return {
     totalRevenueAgreed,
     collectedIncome,
@@ -101,6 +114,13 @@ export function computeFinancialMetrics(
     quoteConversionRatePercent,
     totalInterventions,
     unresolvedInterventionsCount,
-    jobsWithInterventionsCount
+    jobsWithInterventionsCount,
+    totalEconomicHours,
+    effectiveHourlyRate,
+    totalTravelCost,
+    travelTimeHours,
+    travelPercentageOfTime,
+    reworkHours,
+    reworkRatePercent
   };
 }

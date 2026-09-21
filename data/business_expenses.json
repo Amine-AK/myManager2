@@ -1,5 +1,82 @@
 [
   {
+    "id": "bexp-1789740933379",
+    "title": "Achat Droguerie/Matériel (Satellite Dish (Parabole) - monir)",
+    "amount": 30,
+    "category": "Materials & droguerie (Fournitures)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789740841702",
+    "title": "Achat Droguerie/Matériel (Camera Error / Repair - simo)",
+    "amount": 30,
+    "category": "Materials & droguerie (Fournitures)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789728546282",
+    "title": "Droguerie (50 MAD) - CCTV Installation - nadi niswi sidi l arbi",
+    "amount": 50,
+    "category": "Materials & droguerie (Fournitures)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789728537384",
+    "title": "Droguerie (150 MAD) - CCTV Installation - nadi niswi sidi l arbi",
+    "amount": 150,
+    "category": "Materials & droguerie (Fournitures)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789728532568",
+    "title": "Droguerie (300 MAD) - CCTV Installation - nadi niswi sidi l arbi",
+    "amount": 300,
+    "category": "Materials & droguerie (Fournitures)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789724208620",
+    "title": "Achat Droguerie (CCTV Installation - nadi niswi sidi l arbi)",
+    "amount": 100,
+    "category": "Hardware & Materials (Matériel)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789724201106",
+    "title": "Achat Droguerie (CCTV Installation - nadi niswi sidi l arbi)",
+    "amount": 150,
+    "category": "Hardware & Materials (Matériel)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789724190307",
+    "title": "Droguerie (150 MAD)",
+    "amount": 150,
+    "category": "Hardware & Materials (Matériel)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789724132370",
+    "title": "Droguerie (100 MAD)",
+    "amount": 100,
+    "category": "Hardware & Materials (Matériel)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789724117366",
+    "title": "Droguerie (50 MAD)",
+    "amount": 50,
+    "category": "Hardware & Materials (Matériel)",
+    "date": "2026-09-18"
+  },
+  {
+    "id": "bexp-1789724110653",
+    "title": "Droguerie (150 MAD)",
+    "amount": 150,
+    "category": "Hardware & Materials (Matériel)",
+    "date": "2026-09-18"
+  },
+  {
     "id": "exp-1787170351295",
     "title": "Tools & Equipment (Outillage)",
     "amount": 50,

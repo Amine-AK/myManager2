@@ -15,12 +15,15 @@ import {
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { AcquisitionFunnelCard } from './AcquisitionFunnelCard';
 import { WeeklySpendingTrackerCard } from './WeeklySpendingTrackerCard';
+import { FieldAnalyticsCard } from './FieldAnalyticsCard';
+import type { JobIntervention } from '../../types';
 
 interface DashboardViewProps {
   metrics: FinancialMetrics;
   insights: FactualInsight[];
   jobs: Job[];
   jobPayments: JobPayment[];
+  jobInterventions?: JobIntervention[];
   debts: DebtObligation[];
   businessExpenses: BusinessExpense[];
   personalExpenses: PersonalExpense[];
@@ -34,6 +37,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   insights,
   jobs,
   jobPayments,
+  jobInterventions = [],
   businessExpenses,
   personalExpenses,
   onOpenQuickJob,
@@ -265,6 +269,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* SECTION: FIELD SERVICE ANALYTICS & PROFITABILITY ENGINE */}
+      <FieldAnalyticsCard
+        jobs={jobs}
+        jobInterventions={jobInterventions}
+      />
 
       {/* SECTION: WEEKLY SPENDING & REWARD TRACKER */}
       <WeeklySpendingTrackerCard

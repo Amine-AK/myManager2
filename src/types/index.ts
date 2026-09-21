@@ -61,6 +61,34 @@ export type AcquisitionSource =
   | 'Mestour'
   | string;
 
+export type DelayCategory =
+  | 'MISSING_TOOL'
+  | 'SITE_UNPREPARED'
+  | 'CLIENT_DELAY'
+  | 'TECHNICAL_COMPLICATION'
+  | 'TRAVEL'
+  | 'WAITING_FOR_PARTS'
+  | 'REWORK'
+  | 'POWER_ISSUE'
+  | 'ACCESS_PROBLEM'
+  | 'CABLING_PROBLEM'
+  | 'NETWORK_PROBLEM'
+  | 'OTHER';
+
+export interface DelayRecord {
+  id: string;
+  category: DelayCategory;
+  durationMinutes?: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export type TransportType =
+  | 'CAR'
+  | 'MOTORCYCLE'
+  | 'PUBLIC_TRANSPORT'
+  | 'OTHER';
+
 export interface JobActivityLog {
   id: string;
   timestamp: string;     // ISO Date or Time string
@@ -87,6 +115,22 @@ export interface Job {
   daysPaused?: number;     // Days blocked waiting for parts/client
   logs?: JobActivityLog[]; // Timeline activity history
   notes?: string;
+
+  // Structured Field-Service Timing (Hours & Minutes)
+  estimatedHours?: number;
+  actualHours?: number;
+  travelTimeMinutes?: number;
+  diagnosticTimeMinutes?: number;
+  waitingTimeMinutes?: number;
+  reworkTimeMinutes?: number;
+
+  // Travel Economics
+  distanceKm?: number;
+  travelCost?: number;     // Specific fuel/transit cost allocated to this job
+  transportType?: TransportType;
+
+  // Field Delays Tagging
+  delays?: DelayRecord[];
 }
 
 export interface BusinessExpense {
@@ -149,6 +193,11 @@ export interface JobIntervention {
   resolvedDate?: string;   // ISO date YYYY-MM-DD - when the follow-up visit was completed
   hoursSpent?: number;     // Actual hands-on hours worked resolving this callback
   notes?: string;
+
+  // Callback rework & travel tracking
+  travelTimeMinutes?: number;
+  reworkTimeMinutes?: number;
+  delays?: DelayRecord[];
 }
 
 export interface Client {
@@ -165,6 +214,86 @@ export interface AcquisitionSummary {
   jobCount: number;
   totalAgreed: number;
   totalCollected: number;
+}
+
+// ------------------------------------------
+// TECHNICAL KNOWLEDGE MODEL
+// ------------------------------------------
+
+export type TechnicalIssueCategory =
+  | 'NETWORK'
+  | 'CCTV'
+  | 'NVR_DVR'
+  | 'CAMERA'
+  | 'CABLING'
+  | 'POWER'
+  | 'ELECTRONICS'
+  | 'SOFTWARE'
+  | 'OTHER';
+
+export interface TechnicalIssue {
+  id: string;
+  jobId?: string;
+  category: TechnicalIssueCategory;
+  symptom?: string;
+  cause?: string;
+  solution?: string;
+  equipment?: string;
+  brand?: string;
+  model?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ------------------------------------------
+// GAMIFICATION FOUNDATION SCHEMAS
+// ------------------------------------------
+
+export interface XPEvent {
+  id: string;
+  type: string;
+  amount: number;
+  entityId?: string;
+  createdAt: string;
+}
+
+export interface EquipmentGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  allocationPercent: number; // e.g. 10%
+  isCompleted: boolean;
+  createdAt: string;
+}
+
+// ------------------------------------------
+// TO-DO & FIELD PLANNING SCHEMAS
+// ------------------------------------------
+
+export type TodoCategory =
+  | 'CALL_CLIENT'   // 📞 Rappeler client (with 1-tap phone dial)
+  | 'FUTURE_WORK'   // 🔨 Chantier futur / Devis
+  | 'BUY_PARTS'     // 🛒 Achat droguerie / Matériel
+  | 'SITE_SURVEY'   // 📐 Visite technique / Diagnostic
+  | 'OTHER';        // 📝 Note / Autre tâche
+
+export type TodoPriority = 'urgent' | 'normal' | 'low';
+
+export interface TodoItem {
+  id: string;
+  title: string;
+  category: TodoCategory;
+  priority: TodoPriority;
+  completed: boolean;
+  dueDate?: string;        // YYYY-MM-DD
+  clientName?: string;
+  clientPhone?: string;    // E.164 or local phone (e.g. 0661123456)
+  jobId?: string;          // Optional link to existing Job
+  estimatedAmount?: number;// MAD (for future jobs / parts cost)
+  notes?: string;
+  createdAt: string;
+  completedAt?: string;
 }
 
 // ------------------------------------------
@@ -209,6 +338,15 @@ export interface FinancialMetrics {
   totalInterventions: number;         // All client-requested follow-up visits, ever
   unresolvedInterventionsCount: number;
   jobsWithInterventionsCount: number; // Distinct jobs that needed a callback
+
+  // Field Service Economics & Effective Hourly Rate
+  totalEconomicHours: number;         // Actual work + Diagnostic + Travel + Waiting + Rework
+  effectiveHourlyRate: number;        // Net Business Profit / Total Economic Time
+  totalTravelCost: number;            // Total specific fuel/transit costs across jobs
+  travelTimeHours: number;            // Total travel duration in hours
+  travelPercentageOfTime: number;     // (Travel Time / Total Economic Time) * 100
+  reworkHours: number;                // Total rework & callback hours
+  reworkRatePercent: number;          // Percentage of jobs requiring callback or rework
 }
 
 export interface FactualInsight {

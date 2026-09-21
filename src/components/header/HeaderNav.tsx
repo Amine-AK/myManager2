@@ -12,16 +12,23 @@ import {
   BarChart3,
   Receipt,
   PiggyBank,
-  Lock
+  Lock,
+  Zap,
+  ListTodo,
+  Package,
+  BookOpen
 } from 'lucide-react';
+import { SyncStatusBadge } from '../common/SyncStatusBadge';
+import { InstallAppButton } from '../common/InstallAppButton';
 
 interface HeaderNavProps {
   metrics: FinancialMetrics;
-  activeTab: 'dashboard' | 'jobs' | 'expenses' | 'debts' | 'print';
-  setActiveTab: (tab: 'dashboard' | 'jobs' | 'expenses' | 'debts' | 'print') => void;
+  activeTab: 'dashboard' | 'jobs' | 'expenses' | 'debts' | 'print' | 'field' | 'todos' | 'inventory' | 'knowledge';
+  setActiveTab: (tab: 'dashboard' | 'jobs' | 'expenses' | 'debts' | 'print' | 'field' | 'todos' | 'inventory' | 'knowledge') => void;
   onOpenQuickExpense: () => void;
   onOpenQuickJob: () => void;
   onOpenQuickDebtPayment: () => void;
+  onOpenQuickTodo?: () => void;
   onLogout?: () => void;
 }
 
@@ -32,6 +39,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onOpenQuickExpense,
   onOpenQuickJob,
   onOpenQuickDebtPayment,
+  onOpenQuickTodo,
   onLogout
 }) => {
   return (
@@ -73,6 +81,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                 </strong>
               </div>
 
+              {/* PWA Install Button (renders when install prompt is available) */}
+              <InstallAppButton />
+
+              {/* Offline/Online Synchronization Status Badge */}
+              <SyncStatusBadge />
+
               {/* Lock / Logout Button */}
               {onLogout && (
                 <button
@@ -110,6 +124,19 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
           {/* Rapid Action Buttons (<10s, <20s, <15s) */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {onOpenQuickTodo && (
+              <button
+                onClick={onOpenQuickTodo}
+                className="flex items-center gap-1 px-2.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition shadow-sm active:scale-95 min-h-[40px]"
+                title="Ajouter une tâche, rappel client ou matériel (<10s)"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <ListTodo className="w-3.5 h-3.5" />
+                <span>Tâche</span>
+                <span className="hidden md:inline text-[9px] opacity-75">&lt;10s</span>
+              </button>
+            )}
+
             <button
               onClick={onOpenQuickExpense}
               className="flex items-center gap-1 px-2.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition shadow-sm active:scale-95 min-h-[40px]"
@@ -143,6 +170,54 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
         {/* Desktop Navigation Tabs (Hidden on Phone screens, replaced by bottom bar) */}
         <div className="max-w-7xl mx-auto px-4 hidden sm:flex border-t border-slate-800/80 overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setActiveTab('field')}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-black border-b-2 transition whitespace-nowrap ${
+              activeTab === 'field'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-amber-400/90 hover:text-amber-300 hover:bg-slate-800/30'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-amber-400" />
+            <span>Mode Chantier (Terrain)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('todos')}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
+              activeTab === 'todos'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <ListTodo className="w-4 h-4" />
+            <span>Tâches & Planification</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
+              activeTab === 'inventory'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Package className="w-4 h-4 text-amber-400" />
+            <span>Stock & Matériel</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('knowledge')}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
+              activeTab === 'knowledge'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <BookOpen className="w-4 h-4 text-amber-400" />
+            <span>Diagnostics & Fiches</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
@@ -207,6 +282,46 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
       {/* MOBILE PHONE NATIVE BOTTOM NAVIGATION BAR */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/98 backdrop-blur-lg border-t border-slate-800 flex items-center justify-around py-2 px-1 sm:hidden no-print shadow-2xl">
+        <button
+          onClick={() => setActiveTab('field')}
+          className={`flex flex-col items-center gap-1 px-2 py-1 rounded-xl transition ${
+            activeTab === 'field' ? 'text-amber-400 font-black scale-105' : 'text-amber-400/80'
+          }`}
+        >
+          <Zap className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Chantier</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('todos')}
+          className={`flex flex-col items-center gap-1 px-2 py-1 rounded-xl transition ${
+            activeTab === 'todos' ? 'text-amber-400 font-black scale-105' : 'text-slate-400'
+          }`}
+        >
+          <ListTodo className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Tâches</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('inventory')}
+          className={`flex flex-col items-center gap-1 px-2 py-1 rounded-xl transition ${
+            activeTab === 'inventory' ? 'text-amber-400 font-black scale-105' : 'text-slate-400'
+          }`}
+        >
+          <Package className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Stock</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('knowledge')}
+          className={`flex flex-col items-center gap-1 px-2 py-1 rounded-xl transition ${
+            activeTab === 'knowledge' ? 'text-amber-400 font-black scale-105' : 'text-slate-400'
+          }`}
+        >
+          <BookOpen className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Fiches</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('dashboard')}
           className={`flex flex-col items-center gap-1 px-2 py-1 rounded-xl transition ${

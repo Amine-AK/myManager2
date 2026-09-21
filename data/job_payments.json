@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "id": "pay-1789728554861",
+    "amount": 1056,
+    "date": "2026-09-18",
+    "notes": "Encaissement total en fin de chantier (Mode Chantier)",
+    "jobId": "job-1789723897007"
+  },
+  {
+    "id": "jpay-1789724705110",
+    "amount": 3900,
+    "date": "2026-09-18",
+    "jobId": "job-1789723897007"
+  },
+  {
+    "id": "jpay-1789724666685",
+    "amount": 100,
+    "date": "2026-09-18",
+    "jobId": "job-1787170198507"
+  },
+  {
+    "id": "jpay-1789723730132",
+    "amount": 150,
+    "date": "2026-09-18",
+    "jobId": "job-1789723730087"
+  }
+]

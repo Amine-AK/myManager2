@@ -510,6 +510,22 @@ export const JobsView: React.FC<JobsViewProps> = ({
                     </button>
                   )}
 
+                  {(job.status === 'completed' || job.status === 'paid') && (
+                    <button
+                      onClick={() => {
+                        setShowStatusModal(job);
+                        setNewStatus('revision_requested');
+                        setStatusNote('Réouverture chantier pour révision / SAV.');
+                        setStatusHours('');
+                      }}
+                      className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 rounded-lg font-bold flex items-center gap-1.5 transition text-[11px]"
+                      title="Relancer ce chantier pour révision ou SAV (il réapparaîtra immédiatement dans le Mode Terrain)"
+                    >
+                      <RotateCcw className="w-3 h-3 text-amber-400" />
+                      Relancer pour Révision (Terrain)
+                    </button>
+                  )}
+
                   {canLogCallback && (
                     <button
                       onClick={() => {
@@ -601,7 +617,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
                   <option value="quoted">Quoted (Awaiting Client Decision)</option>
                   <option value="in_progress">En Cours (Active Work)</option>
                   <option value="waiting_parts">Waiting Parts / Equipment (Another city)</option>
-                  <option value="revision_requested">Client Revision Requested</option>
+                  <option value="revision_requested">Client Revision Requested (Réactiver en Mode Terrain)</option>
                   <option value="completed">Completed (Work Finished)</option>
                   <option value="paid">Paid & Closed</option>
                   <option value="quote_lost">Quote Lost (Client Declined)</option>
