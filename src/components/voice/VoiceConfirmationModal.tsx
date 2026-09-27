@@ -304,7 +304,10 @@ export const VoiceConfirmationModal: React.FC<VoiceConfirmationModalProps> = ({
                   <input type="date" value={jobDate} onChange={e => setJobDate(e.target.value)} className={inputClass} />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              {/* 2 columns, not 3 - matching QuickJobModal's own price/paid row -
+                  so the price/paid labels have room to breathe on a phone
+                  instead of wrapping across three cramped ~90px columns. */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-amber-400 mb-1">AGREED PRICE (MAD) *</label>
                   <input
@@ -325,10 +328,10 @@ export const VoiceConfirmationModal: React.FC<VoiceConfirmationModalProps> = ({
                     className={`${inputClass} border-emerald-500/40 text-emerald-300 font-bold`}
                   />
                 </div>
-                <div>
-                  <label className={labelClass}>MATERIALS (MAD)</label>
-                  <input type="number" step="any" value={materialCosts} onChange={e => setMaterialCosts(e.target.value)} className={inputClass} />
-                </div>
+              </div>
+              <div>
+                <label className={labelClass}>MATERIALS (MAD)</label>
+                <input type="number" step="any" value={materialCosts} onChange={e => setMaterialCosts(e.target.value)} className={inputClass} />
               </div>
             </>
           )}
