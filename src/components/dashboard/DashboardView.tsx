@@ -58,104 +58,104 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* SECTION 1: THE 4 CORE QUESTIONS - 10 SECOND FINANCIAL TRUTH */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Q1: Available Cash */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800/50 border border-slate-700/60 hover:border-emerald-500/50 rounded-3xl p-6 relative overflow-hidden shadow-xl hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              3. Available Cash Right Now
+            <span className="text-[11px] font-bold text-emerald-400/80 uppercase tracking-wider bg-emerald-500/10 px-2.5 py-1 rounded-lg">
+              Available Cash Right Now
             </span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 text-emerald-400 border border-emerald-500/20">
               <Wallet className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-3xl font-black text-emerald-400 tracking-tight">
+          <div className="mt-4">
+            <div className="text-4xl font-black text-emerald-400 tracking-tight drop-shadow-sm">
               {metrics.availableCash.toLocaleString('fr-MA')} MAD
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-2 font-medium">
               Collected Cash minus All Costs, Household & Debt
             </p>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-            <span className="text-slate-400">Net Cash Flow:</span>
-            <span className={`font-bold ${metrics.netCashFlow >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+          <div className="mt-5 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-medium">Net Cash Flow:</span>
+            <span className={`font-bold px-2 py-1 rounded-md ${metrics.netCashFlow >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
               {metrics.netCashFlow >= 0 ? '+' : ''}{metrics.netCashFlow.toLocaleString('fr-MA')} MAD
             </span>
           </div>
         </div>
 
         {/* Q2: Real Earned (Net Profit) */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800/50 border border-slate-700/60 hover:border-blue-500/50 rounded-3xl p-6 relative overflow-hidden shadow-xl hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              1. Money Really Earned
+            <span className="text-[11px] font-bold text-blue-400/80 uppercase tracking-wider bg-blue-500/10 px-2.5 py-1 rounded-lg">
+              Money Really Earned
             </span>
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-blue-400 border border-blue-500/20">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-3xl font-black text-slate-100 tracking-tight">
+          <div className="mt-4">
+            <div className="text-4xl font-black text-slate-100 tracking-tight drop-shadow-sm">
               {metrics.netBusinessProfit.toLocaleString('fr-MA')} MAD
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-2 font-medium">
               Net Business Profit (Income - Work Costs)
             </p>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-            <span className="text-slate-400">Profit Margin:</span>
-            <span className="font-bold text-blue-400">
+          <div className="mt-5 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-medium">Profit Margin:</span>
+            <span className="font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-md">
               {metrics.profitMarginPercent.toFixed(1)}%
             </span>
           </div>
         </div>
 
         {/* Q3: Where did money go? (Total Outflows) */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800/50 border border-slate-700/60 hover:border-amber-500/50 rounded-3xl p-6 relative overflow-hidden shadow-xl hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              2. Total Outflows & Spent
+            <span className="text-[11px] font-bold text-amber-400/80 uppercase tracking-wider bg-amber-500/10 px-2.5 py-1 rounded-lg">
+              Total Outflows & Spent
             </span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 text-amber-400 border border-amber-500/20">
               <Receipt className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-3xl font-black text-amber-400 tracking-tight">
+          <div className="mt-4">
+            <div className="text-4xl font-black text-amber-400 tracking-tight drop-shadow-sm">
               {(metrics.totalBusinessCosts + metrics.totalPersonalSpending + metrics.totalDebtPaid).toLocaleString('fr-MA')} MAD
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-2 font-medium">
               Work ({metrics.totalBusinessCosts.toLocaleString('fr-MA')}) + Home ({metrics.totalPersonalSpending.toLocaleString('fr-MA')}) + Debt ({metrics.totalDebtPaid.toLocaleString('fr-MA')})
             </p>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-            <span className="text-slate-400">Household Split:</span>
-            <span className="font-bold text-rose-400">
+          <div className="mt-5 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-medium">Household Split:</span>
+            <span className="font-bold text-rose-400 bg-rose-500/10 px-2 py-1 rounded-md">
               {metrics.totalPersonalSpending.toLocaleString('fr-MA')} MAD
             </span>
           </div>
         </div>
 
         {/* Q4: Uncollected Revenue & Debt Burden */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800/50 border border-slate-700/60 hover:border-purple-500/50 rounded-3xl p-6 relative overflow-hidden shadow-xl hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              4. Owed To Me vs My Debt
+            <span className="text-[11px] font-bold text-purple-400/80 uppercase tracking-wider bg-purple-500/10 px-2.5 py-1 rounded-lg">
+              Owed To Me vs My Debt
             </span>
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 text-purple-400 border border-purple-500/20">
               <CreditCard className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-amber-400 tracking-tight">
+          <div className="mt-4">
+            <div className="text-3xl font-black text-amber-400 tracking-tight drop-shadow-sm truncate">
               +{metrics.uncollectedRevenue.toLocaleString('fr-MA')} MAD
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-2 font-medium">
               Clients Owe Me (Uncollected)
             </p>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-            <span className="text-slate-400">My Outstanding Debt:</span>
-            <span className="font-bold text-purple-400">
+          <div className="mt-5 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-medium">My Outstanding Debt:</span>
+            <span className="font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded-md">
               -{metrics.totalDebtOutstanding.toLocaleString('fr-MA')} MAD
             </span>
           </div>
@@ -287,32 +287,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <AcquisitionFunnelCard jobs={jobs} />
 
       {/* SECTION 3: QUICK ACTIONS INVITATION */}
-      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h4 className="text-sm font-bold text-slate-200">Rapid Financial Logging</h4>
-          <p className="text-xs text-slate-400">Keep available cash updated in seconds between jobs.</p>
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800/80 border border-slate-700/80 rounded-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-5 shadow-xl">
+        <div className="space-y-1">
+          <h4 className="text-base font-black text-slate-100 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-400" />
+            Rapid Financial Logging
+          </h4>
+          <p className="text-sm text-slate-400 font-medium">Keep available cash updated in seconds between jobs.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={onOpenQuickExpense}
-            className="px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2"
           >
             <span>+ Expense</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-4 h-4 opacity-70" />
           </button>
           <button
             onClick={onOpenQuickJob}
-            className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20"
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-lg shadow-emerald-500/25"
           >
             <span>+ Job / Payment</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-4 h-4 opacity-70" />
           </button>
           <button
             onClick={onOpenQuickDebtPayment}
-            className="px-3 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2"
           >
             <span>+ Debt Pay</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-4 h-4 opacity-70" />
           </button>
         </div>
       </div>
