@@ -262,32 +262,39 @@ export const PrintStatementView: React.FC<PrintStatementViewProps> = ({
           <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">
             1. Completed & Active Jobs (Revenue & Cash)
           </h3>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
-                <th className="py-2">Job Title</th>
-                <th className="py-2">Client</th>
-                <th className="py-2 text-right">Agreed Price</th>
-                <th className="py-2 text-right">Paid Amount</th>
-                <th className="py-2 text-right">Material Cost</th>
-                <th className="py-2 text-right">Uncollected</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {jobs.map(j => (
-                <tr key={j.id} className="hover:bg-slate-800/30">
-                  <td className="py-2 font-medium">{j.title}</td>
-                  <td className="py-2 text-slate-400">{j.clientName}</td>
-                  <td className="py-2 text-right font-mono">{j.agreedPrice.toLocaleString('fr-MA')} MAD</td>
-                  <td className="py-2 text-right font-mono text-emerald-400">{j.paidAmount.toLocaleString('fr-MA')} MAD</td>
-                  <td className="py-2 text-right font-mono text-slate-400">{j.materialCosts.toLocaleString('fr-MA')} MAD</td>
-                  <td className="py-2 text-right font-mono text-amber-400">
-                    {(j.agreedPrice - j.paidAmount).toLocaleString('fr-MA')} MAD
-                  </td>
+          {/* overflow-x-auto: 6 columns of financial data don't fit a phone's
+              width - this lets the table scroll horizontally inside its own
+              box instead of squishing illegibly or forcing the whole page
+              to scroll sideways. print:overflow-visible keeps the printed
+              statement showing the full table, unclipped. */}
+          <div className="overflow-x-auto print:overflow-visible -mx-1 px-1">
+            <table className="w-full min-w-[560px] text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
+                  <th className="py-2">Job Title</th>
+                  <th className="py-2">Client</th>
+                  <th className="py-2 text-right">Agreed Price</th>
+                  <th className="py-2 text-right">Paid Amount</th>
+                  <th className="py-2 text-right">Material Cost</th>
+                  <th className="py-2 text-right">Uncollected</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {jobs.map(j => (
+                  <tr key={j.id} className="hover:bg-slate-800/30">
+                    <td className="py-2 font-medium whitespace-nowrap">{j.title}</td>
+                    <td className="py-2 text-slate-400 whitespace-nowrap">{j.clientName}</td>
+                    <td className="py-2 text-right font-mono whitespace-nowrap">{j.agreedPrice.toLocaleString('fr-MA')} MAD</td>
+                    <td className="py-2 text-right font-mono text-emerald-400 whitespace-nowrap">{j.paidAmount.toLocaleString('fr-MA')} MAD</td>
+                    <td className="py-2 text-right font-mono text-slate-400 whitespace-nowrap">{j.materialCosts.toLocaleString('fr-MA')} MAD</td>
+                    <td className="py-2 text-right font-mono text-amber-400 whitespace-nowrap">
+                      {(j.agreedPrice - j.paidAmount).toLocaleString('fr-MA')} MAD
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Debt Obligations Table */}
@@ -295,28 +302,30 @@ export const PrintStatementView: React.FC<PrintStatementViewProps> = ({
           <h3 className="font-bold text-sm text-slate-200 border-b border-slate-800 pb-2">
             2. Active Creditors & Debt Obligations
           </h3>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
-                <th className="py-2">Creditor</th>
-                <th className="py-2">Type</th>
-                <th className="py-2 text-right">Original Amount</th>
-                <th className="py-2 text-right">Remaining Balance</th>
-                <th className="py-2 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {debts.map(d => (
-                <tr key={d.id} className="hover:bg-slate-800/30">
-                  <td className="py-2 font-medium">{d.creditor}</td>
-                  <td className="py-2 text-slate-400 capitalize">{d.type.replace('_', ' ')}</td>
-                  <td className="py-2 text-right font-mono">{d.totalAmount.toLocaleString('fr-MA')} MAD</td>
-                  <td className="py-2 text-right font-mono text-purple-400">{d.remainingBalance.toLocaleString('fr-MA')} MAD</td>
-                  <td className="py-2 text-right font-semibold capitalize text-slate-300">{d.status}</td>
+          <div className="overflow-x-auto print:overflow-visible -mx-1 px-1">
+            <table className="w-full min-w-[480px] text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
+                  <th className="py-2">Creditor</th>
+                  <th className="py-2">Type</th>
+                  <th className="py-2 text-right">Original Amount</th>
+                  <th className="py-2 text-right">Remaining Balance</th>
+                  <th className="py-2 text-right">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {debts.map(d => (
+                  <tr key={d.id} className="hover:bg-slate-800/30">
+                    <td className="py-2 font-medium whitespace-nowrap">{d.creditor}</td>
+                    <td className="py-2 text-slate-400 capitalize whitespace-nowrap">{d.type.replace('_', ' ')}</td>
+                    <td className="py-2 text-right font-mono whitespace-nowrap">{d.totalAmount.toLocaleString('fr-MA')} MAD</td>
+                    <td className="py-2 text-right font-mono text-purple-400 whitespace-nowrap">{d.remainingBalance.toLocaleString('fr-MA')} MAD</td>
+                    <td className="py-2 text-right font-semibold capitalize text-slate-300 whitespace-nowrap">{d.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/*
+ * Custom breakpoint. Tailwind v4 is CSS-first: tailwind.config.js in this
+ * project is NOT wired up (no @config directive, and @tailwindcss/postcss
+ * only auto-loads it in some setups) - verified by rebuilding with an "xs"
+ * screen added there and diffing the output CSS, which didn't change at
+ * all. So the "xs:" variant already used throughout HeaderNav.tsx and
+ * FieldModeView.tsx compiled to nothing, meaning every `hidden xs:flex` /
+ * `hidden xs:inline` was permanently hidden on ALL screen sizes, not just
+ * small phones. Defining it here (Tailwind v4's --breakpoint-* namespace)
+ * makes it a real breakpoint, additive to the sm/md/lg/xl/2xl defaults.
+ */
+@theme {
+  --breakpoint-xs: 400px;
+}
+
 @layer base {
   body {
     background-color: #020617; /* Slate 950 */
@@ -8,6 +23,20 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/*
+ * Referenced by HeaderNav.tsx and TodoView.tsx for horizontally-scrollable
+ * rows (the desktop tab bar, the top-strip metric pills, the todo filter
+ * chips) but was never actually defined anywhere, so those rows fell back
+ * to a plain visible scrollbar instead of the intended clean edge-fade.
+ */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* older Edge/IE */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/newer Edge */
 }
 
 /* Touch-friendly scrollbar */

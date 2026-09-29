@@ -39,6 +39,8 @@ import {
   debtPaymentSchema,
   clientSchema
 } from './validation.js';
+import { transcribeAudio } from './services/ai/speechToText.js';
+import { extractVoiceCommand } from './services/ai/dataExtraction.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -80,6 +82,69 @@ app.get('/api/health', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// --- AI VOICE ENTRY ---
+// Pipeline: raw audio -> speech-to-text -> structured extraction -> validated
+// VoiceCommand JSON. This endpoint NEVER writes to the database - it only
+// returns a structured command for the frontend to show in a confirmation
+// UI. Saving happens afterwards through the normal repository/API routes
+// above, after the user confirms, exactly like a manually-entered record.
+const MIN_AUDIO_BYTES = 200; // guards against empty/corrupt uploads, not against short-but-valid speech
+const MAX_AUDIO_BYTES = 8 * 1024 * 1024; // 8MB, well above a short voice command
+
+app.post(
+  '/api/ai/voice-entry',
+  express.raw({ type: () => true, limit: MAX_AUDIO_BYTES }),
+  async (req, res) => {
+    try {
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(503).json({
+          success: false,
+          error: 'Voice entry is not configured on the server yet (missing GEMINI_API_KEY). All other features still work normally.'
+        });
+      }
+
+      if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+        return res.status(400).json({ success: false, error: 'No audio was received. Please try recording again.' });
+      }
+
+      if (req.body.length < MIN_AUDIO_BYTES) {
+        return res.status(400).json({ success: false, error: 'That recording was too short to understand. Please try again and speak clearly.' });
+      }
+
+      const mimeType = req.headers['content-type'] || 'audio/webm';
+
+      let transcript;
+      try {
+        transcript = await transcribeAudio(req.body, mimeType);
+      } catch (err) {
+        console.error('[voice-entry] transcription failed:', err.message);
+        return res.status(502).json({ success: false, error: "I couldn't hear that clearly. Please check your microphone and try again." });
+      }
+
+      if (!transcript) {
+        return res.json({ success: false, transcript: '', error: "I didn't catch anything. Please try again." });
+      }
+
+      let command;
+      try {
+        command = await extractVoiceCommand(transcript);
+      } catch (err) {
+        console.error('[voice-entry] extraction failed:', err.message);
+        return res.status(502).json({
+          success: false,
+          transcript,
+          error: "I understood your words but couldn't structure them into an entry. Please try rephrasing."
+        });
+      }
+
+      res.json({ success: true, transcript, command });
+    } catch (err) {
+      console.error('[voice-entry] unexpected error:', err);
+      res.status(500).json({ success: false, error: 'Something went wrong processing your voice entry. Please try again.' });
+    }
+  }
+);
 
 // --- JOBS ---
 app.get('/api/jobs', async (req, res) => {

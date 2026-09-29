@@ -55,6 +55,8 @@ import {
   resetKnowledgeBaseToDefault
 } from './lib/storage/knowledgeRepository';
 import type { DiagnosticGuide } from './types/knowledgeBase';
+import { VoiceConfirmationModal } from './components/voice/VoiceConfirmationModal';
+import type { VoiceCommand } from './types/voice';
 
 export function App() {
   // Authentication State
@@ -70,6 +72,10 @@ export function App() {
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
   const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
+
+  // AI Voice Entry: holds the transcript + structured command awaiting
+  // user confirmation. Null means no confirmation card is showing.
+  const [voiceResult, setVoiceResult] = useState<{ transcript: string; command: VoiceCommand } | null>(null);
 
   // Todo Items State (Local-first persistence)
   const [todos, setTodos] = useState<TodoItem[]>(getStoredTodos);
@@ -261,6 +267,8 @@ export function App() {
         onOpenQuickJob={() => setIsJobModalOpen(true)}
         onOpenQuickDebtPayment={() => setIsDebtModalOpen(true)}
         onOpenQuickTodo={() => setIsTodoModalOpen(true)}
+        onVoiceCommandReady={(transcript, command) => setVoiceResult({ transcript, command })}
+        voiceEntryDisabled={!!voiceResult}
         onLogout={handleLogout}
       />
 
@@ -406,6 +414,22 @@ export function App() {
         onClose={() => setIsTodoModalOpen(false)}
         onSaveTodo={(t) => setTodos(saveTodoItem(t))}
       />
+
+      {voiceResult && (
+        <VoiceConfirmationModal
+          transcript={voiceResult.transcript}
+          command={voiceResult.command}
+          clients={clients}
+          jobs={jobs}
+          debts={debts}
+          onClose={() => setVoiceResult(null)}
+          onSaveJob={handleSaveJob}
+          onCollectJobPayment={handleCollectJobPayment}
+          onSaveBusinessExpense={handleSaveBusinessExpense}
+          onSavePersonalExpense={handleSavePersonalExpense}
+          onSaveDebtPayment={handleSaveDebtPayment}
+        />
+      )}
     </div>
   );
 }
