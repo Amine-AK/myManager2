@@ -3,7 +3,12 @@
 // Offline Shell & Dynamic Asset Cache
 // ==========================================
 
-const CACHE_NAME = 'mymanager-shell-v1';
+// Bump this suffix whenever a deploy needs every installed PWA/browser tab
+// to definitely pick up new assets rather than keep serving what it already
+// cached: activate deletes any cache whose name isn't this one, but only
+// runs when the browser detects sw.js itself changed - a stale CACHE_NAME
+// across many deploys means that detection never happens.
+const CACHE_NAME = 'mymanager-shell-v2';
 
 const PRECACHE_ASSETS = [
   '/',
