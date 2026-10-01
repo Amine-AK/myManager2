@@ -57,6 +57,7 @@ import {
 import type { DiagnosticGuide } from './types/knowledgeBase';
 import { VoiceConfirmationModal } from './components/voice/VoiceConfirmationModal';
 import type { VoiceCommand } from './types/voice';
+import { useTodoNotifications } from './hooks/useTodoNotifications';
 
 export function App() {
   // Authentication State
@@ -85,6 +86,9 @@ export function App() {
 
   // Technical Knowledge Base State (Local-first persistence)
   const [guides, setGuides] = useState<DiagnosticGuide[]>(loadKnowledgeBase);
+
+  // Initialize background notification checker for tasks
+  useTodoNotifications(todos, setTodos);
 
   // Entities Data State
   const [jobs, setJobs] = useState<Job[]>([]);

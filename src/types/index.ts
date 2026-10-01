@@ -287,6 +287,8 @@ export interface TodoItem {
   priority: TodoPriority;
   completed: boolean;
   dueDate?: string;        // YYYY-MM-DD
+  dueTime?: string;        // HH:mm for notifications
+  notificationSent?: boolean; // True if the local notification fired
   clientName?: string;
   clientPhone?: string;    // E.164 or local phone (e.g. 0661123456)
   jobId?: string;          // Optional link to existing Job

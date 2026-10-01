@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { TodoItem, TodoCategory, TodoPriority } from '../../types';
 import { CATEGORY_METADATA } from '../../lib/storage/todoRepository';
-import { X, CheckSquare, Phone, Calendar, DollarSign, AlertCircle, User } from 'lucide-react';
+import { X, CheckSquare, Phone, Calendar, Clock, DollarSign, AlertCircle, User } from 'lucide-react';
 
 interface QuickTodoModalProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ export const QuickTodoModal: React.FC<QuickTodoModalProps> = ({
   const [category, setCategory] = useState<TodoCategory>(initialCategory);
   const [priority, setPriority] = useState<TodoPriority>('normal');
   const [dueDate, setDueDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [dueTime, setDueTime] = useState<string>('');
   const [clientName, setClientName] = useState(initialClientName);
   const [clientPhone, setClientPhone] = useState(initialClientPhone);
   const [estimatedAmount, setEstimatedAmount] = useState<string>('');
@@ -42,6 +43,8 @@ export const QuickTodoModal: React.FC<QuickTodoModalProps> = ({
       priority,
       completed: false,
       dueDate: dueDate || undefined,
+      dueTime: dueTime || undefined,
+      notificationSent: false,
       clientName: clientName.trim() || undefined,
       clientPhone: clientPhone.trim() || undefined,
       estimatedAmount: estimatedAmount ? parseFloat(estimatedAmount) : undefined,
@@ -59,6 +62,7 @@ export const QuickTodoModal: React.FC<QuickTodoModalProps> = ({
     setCategory('CALL_CLIENT');
     setPriority('normal');
     setDueDate(new Date().toISOString().split('T')[0]);
+    setDueTime('');
     setClientName('');
     setClientPhone('');
     setEstimatedAmount('');
@@ -165,15 +169,27 @@ export const QuickTodoModal: React.FC<QuickTodoModalProps> = ({
           </div>
 
           {/* Due Date, Priority, Amount */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" /> Échéance
+                <Calendar className="w-3.5 h-3.5" /> Date
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={e => setDueDate(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1" title="Vous recevrez une notification locale à cette heure">
+                <Clock className="w-3.5 h-3.5" /> Heure Notif
+              </label>
+              <input
+                type="time"
+                value={dueTime}
+                onChange={e => setDueTime(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-amber-400"
               />
             </div>
