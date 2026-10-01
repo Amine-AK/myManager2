@@ -54,12 +54,17 @@ export const QuickTodoModal: React.FC<QuickTodoModalProps> = ({
     };
 
     if (dueDate && dueTime) {
+      // Create local Date object from user's timezone inputs to avoid server-side timezone shift
+      const [year, month, day] = dueDate.split('-').map(Number);
+      const [hours, minutes] = dueTime.split(':').map(Number);
+      const targetDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+      const targetTimestamp = targetDate.getTime();
+
       // Schedule the push notification on the backend
-      const targetTimeStr = `${dueDate}T${dueTime}:00`;
       scheduleServerPush(
         'Tâche / Rappel : ' + newTodo.title,
         newTodo.clientName ? `Client: ${newTodo.clientName}` : 'Il est l\'heure pour cette tâche.',
-        targetTimeStr
+        targetTimestamp
       ).catch(err => console.error('Push scheduling failed:', err));
     }
 

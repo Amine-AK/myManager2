@@ -432,16 +432,13 @@ let scheduledPushes = [];
 
 app.post('/api/push/schedule', (req, res) => {
   try {
-    const { subscription, payload, targetTimeStr } = req.body;
-    if (!subscription || !payload || !targetTimeStr) {
+    const { subscription, payload, targetTimestamp } = req.body;
+    if (!subscription || !payload || !targetTimestamp) {
       return res.status(400).json({ error: 'Missing parameters' });
     }
 
-    const targetTimestamp = new Date(targetTimeStr).getTime();
-
-    // Allow scheduling a bit in the past in case of slight sync delays, otherwise reject
-    if (isNaN(targetTimestamp)) {
-      return res.status(400).json({ error: 'Invalid date format' });
+    if (typeof targetTimestamp !== 'number' || isNaN(targetTimestamp)) {
+      return res.status(400).json({ error: 'Invalid timestamp format' });
     }
 
     scheduledPushes.push({
@@ -455,6 +452,25 @@ app.post('/api/push/schedule', (req, res) => {
   } catch (err) {
     console.error('Error scheduling push:', err);
     res.status(500).json({ error: 'Failed to schedule notification' });
+  }
+});
+
+app.post('/api/push/test', (req, res) => {
+  try {
+    const { subscription } = req.body;
+    if (!subscription) return res.status(400).json({ error: 'Missing subscription' });
+
+    webpush.sendNotification(subscription, JSON.stringify({
+      title: 'Test Notification',
+      body: 'If you see this, background notifications are working!'
+    }))
+    .then(() => res.json({ success: true }))
+    .catch(err => {
+      console.error('Test push failed:', err);
+      res.status(500).json({ error: 'Failed to send test push' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

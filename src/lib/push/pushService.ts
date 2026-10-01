@@ -25,6 +25,12 @@ export async function subscribeToPushNotifications() {
   }
 
   try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.warn('Notification permission not granted.');
+      return null;
+    }
+
     const registration = await navigator.serviceWorker.ready;
     let subscription = await registration.pushManager.getSubscription();
 
@@ -42,7 +48,24 @@ export async function subscribeToPushNotifications() {
   }
 }
 
-export async function scheduleServerPush(title: string, body: string, targetTimeStr: string) {
+export async function testServerPush() {
+  const subscription = await subscribeToPushNotifications();
+  if (!subscription) return false;
+
+  try {
+    const res = await fetch('/api/push/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription })
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Test push failed:', err);
+    return false;
+  }
+}
+
+export async function scheduleServerPush(title: string, body: string, targetTimestamp: number) {
   const subscription = await subscribeToPushNotifications();
   if (!subscription) {
     console.warn('Could not schedule push: No push subscription active.');
@@ -58,7 +81,7 @@ export async function scheduleServerPush(title: string, body: string, targetTime
       body: JSON.stringify({
         subscription,
         payload: { title, body },
-        targetTimeStr
+        targetTimestamp
       })
     });
 
