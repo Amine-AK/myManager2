@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { TodoItem, TodoCategory, TodoPriority } from '../../types';
 import { CATEGORY_METADATA } from '../../lib/storage/todoRepository';
 import { X, CheckSquare, Phone, Calendar, Clock, DollarSign, AlertCircle, User } from 'lucide-react';
+import { scheduleServerPush } from '../../lib/push/pushService';
 
 interface QuickTodoModalProps {
   isOpen: boolean;
@@ -51,6 +52,16 @@ export const QuickTodoModal: React.FC<QuickTodoModalProps> = ({
       notes: notes.trim() || undefined,
       createdAt: new Date().toISOString()
     };
+
+    if (dueDate && dueTime) {
+      // Schedule the push notification on the backend
+      const targetTimeStr = `${dueDate}T${dueTime}:00`;
+      scheduleServerPush(
+        'Tâche / Rappel : ' + newTodo.title,
+        newTodo.clientName ? `Client: ${newTodo.clientName}` : 'Il est l\'heure pour cette tâche.',
+        targetTimeStr
+      ).catch(err => console.error('Push scheduling failed:', err));
+    }
 
     onSaveTodo(newTodo);
     handleReset();

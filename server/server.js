@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import webpush from 'web-push';
 import {
   initDb,
   getActiveBackend,
@@ -414,6 +415,65 @@ app.post('/api/import', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// --- WEB PUSH NOTIFICATIONS ---
+const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'BHTJaTxsiheEu5rBiciJzAzpkAGul4LE_IbGKepSFza1LWDAfO-bM3rpskzExn3KbwfKHoTHpCpeHyTs6YYkxnM';
+const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'iFcWlUU86klLnHnGfLCqFCPl9c0inSu1Nd6snD8dglU';
+
+webpush.setVapidDetails(
+  'mailto:support@mymanager.local',
+  publicVapidKey,
+  privateVapidKey
+);
+
+// In-memory scheduler for demo purposes
+// In production, this should be saved to Postgres/Redis
+let scheduledPushes = [];
+
+app.post('/api/push/schedule', (req, res) => {
+  try {
+    const { subscription, payload, targetTimeStr } = req.body;
+    if (!subscription || !payload || !targetTimeStr) {
+      return res.status(400).json({ error: 'Missing parameters' });
+    }
+
+    const targetTimestamp = new Date(targetTimeStr).getTime();
+
+    // Allow scheduling a bit in the past in case of slight sync delays, otherwise reject
+    if (isNaN(targetTimestamp)) {
+      return res.status(400).json({ error: 'Invalid date format' });
+    }
+
+    scheduledPushes.push({
+      subscription,
+      payload,
+      targetTimestamp,
+      id: Date.now() + Math.random().toString()
+    });
+
+    res.status(201).json({ success: true });
+  } catch (err) {
+    console.error('Error scheduling push:', err);
+    res.status(500).json({ error: 'Failed to schedule notification' });
+  }
+});
+
+// Polling interval to check scheduled pushes every 10 seconds
+setInterval(() => {
+  const now = Date.now();
+  const toSend = scheduledPushes.filter(push => push.targetTimestamp <= now);
+
+  // Remove them from the queue
+  scheduledPushes = scheduledPushes.filter(push => push.targetTimestamp > now);
+
+  for (const push of toSend) {
+    webpush.sendNotification(push.subscription, JSON.stringify(push.payload))
+      .catch(err => {
+        console.error('Failed to send push notification:', err);
+        // If the subscription is gone/expired, we don't put it back
+      });
+  }
+}, 10000);
 
 // --- CLEAR ALL DATA (testing / fresh start) ---
 app.post('/api/clear-all', async (req, res) => {

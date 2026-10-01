@@ -28,6 +28,48 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// 4. Web Push Notifications
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      const options = {
+        body: data.body,
+        icon: '/favicon.svg',
+        vibrate: [100, 50, 100],
+        data: {
+          dateOfArrival: Date.now(),
+          primaryKey: '1'
+        },
+        requireInteraction: true
+      };
+      event.waitUntil(self.registration.showNotification(data.title, options));
+    } catch (e) {
+      console.error('[SW] Failed to parse push notification data', e);
+    }
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((windowClients) => {
+      // Check if there is already a window/tab open with the target URL
+      for (let i = 0; i < windowClients.length; i++) {
+        let client = windowClients[i];
+        // If so, just focus it.
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If not, then open the target URL in a new window/tab.
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
+    })
+  );
+});
+
 // 2. Activation - Clean up obsolete caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
