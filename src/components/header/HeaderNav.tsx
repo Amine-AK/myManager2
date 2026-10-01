@@ -196,7 +196,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         </div>
 
         {/* Desktop Navigation Tabs (Hidden on Phone screens, replaced by bottom bar) */}
-        <div className="max-w-7xl mx-auto px-4 hidden sm:flex border-t border-slate-800/80 overflow-x-auto no-scrollbar">
+        <div className="max-w-7xl mx-auto px-4 hidden sm:flex border-t border-slate-800/80 flex-wrap">
           <button
             onClick={() => setActiveTab('field')}
             className={`flex items-center gap-2 px-4 py-3 text-xs font-black border-b-2 transition whitespace-nowrap ${
